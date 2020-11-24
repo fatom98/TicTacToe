@@ -1,8 +1,9 @@
 import pygame
 from .constants import *
 from itertools import cycle
-from pprint import pprint
 from threading import Thread
+from copy import deepcopy
+from minimax.ai import Ai
 from .game import Game
 
 
@@ -15,9 +16,10 @@ class Board:
 
     def res(self):
         self.board = []
-        self.ai = Ai(self.win)
         self.PARTICIPANTS = cycle("XO")
         self.turn = next(self.PARTICIPANTS)
+        self.ai = Ai()
+        self.game = Game()
         self.create_board()
 
     def create_board(self):
@@ -62,35 +64,17 @@ class Board:
     def move(self, pos, piece):
         r, c = pos
         self.board[r][c] = piece
-        result = self.winner()
+        result = self.game.winner(self.board, self.turn)
 
-        if result == "dewamke":
+        if not result:
             self.turn = next(self.PARTICIPANTS)
 
             if self.turn == "O":
-                self.ai.move()
+                pos = self.ai.move(deepcopy(self.board))
+                self.place_o(pos)
 
         else:
             self.done(result)
-
-    def winner(self):
-
-        if (self.board[0][0] == self.board[0][1] == self.board[0][2] != "" or
-            self.board[1][0] == self.board[1][1] == self.board[1][2] != "" or
-            self.board[2][0] == self.board[2][1] == self.board[2][2] != "" or
-            self.board[0][0] == self.board[1][0] == self.board[2][0] != "" or
-            self.board[0][1] == self.board[1][1] == self.board[2][1] != "" or
-            self.board[0][2] == self.board[1][2] == self.board[2][2] != "" or
-            self.board[0][0] == self.board[1][1] == self.board[2][2] != "" or
-                self.board[0][2] == self.board[1][1] == self.board[2][0] != ""):
-
-            return self.turn
-
-        elif "" not in self.board[0] and "" not in self.board[1] and "" not in self.board[2]:
-            return "tie"
-
-        else:
-            return "dewamke"
 
     def wait(self):
         pygame.time.wait(3 * SECOND)
